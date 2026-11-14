@@ -14,29 +14,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - name: Install system SDK + Buildozer
+      - name: Install P4A
         run: |
           sudo apt-get update
-          sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev cmake libffi-dev libssl-dev automake build-essential ant
+          sudo apt-get install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev cmake libffi-dev libssl-dev automake build-essential
           pip install --upgrade pip
-          pip install buildozer Cython==0.29.33
-          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses
-          /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platform-tools" "platforms;android-33" "ndk;25b"
-          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
-          echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-          echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-          echo "24333f8a63b6825ea9c5514f83c1059b8ea3b2e" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-          mkdir -p ~/.buildozer/android/platform/android-sdk/build-tools
-          ln -sf /usr/local/lib/android/sdk/build-tools/33.0.2 ~/.buildozer/android/platform/android-sdk/build-tools/33.0.2 || true
-      - name: Build APK
-        env:
-          ANDROIDSDK: "/usr/local/lib/android/sdk"
-          ANDROIDNDK: "/usr/local/lib/android/sdk/ndk/25b"
-          ANDROIDAPI: "33"
+          pip install python-for-android Cython==0.29.33 kivy==2.3.0
+      - name: Build APK with P4A
         run: |
-          buildozer android debug --verbose
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+          p4a apk --private . --package=com.goliatelfo.visorluz --name VisorLuz --version 9.9 --bootstrap=sdl2 --requirements=python3,kivy --arch arm64-v8a --permission INTERNET --permission CAMERA --allow-collisions --dist-name VisorLuz --no-use-setup-py
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: VisorLuz-APK
-          path: bin/*.apk
+          path: "*.apk"
